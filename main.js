@@ -1,143 +1,110 @@
-// console.log("Hello from JavaScript");
+// adding an event listener for page load
+window.addEventListener("load", fetchBookmarks);
 
-// Event Listener for form submit
-document.querySelector("#myForm").addEventListener("submit", savaBookmark);
-
-// Event Listener for filter
-document.querySelector("#filter").addEventListener("keyup", filterBookmarks);
-
-// filter Bookmarks
-function filterBookmarks() {
-    // console.log("hello from filter");
-    var filterValue = document.querySelector("#filter").value.toUpperCase();
-    // console.log(filterValue);
-    var bookmarkNames = document.querySelectorAll(".name");
-    // console.log(bookmarkNames);
-
-    for (var i = 0; i < bookmarkNames.length; i++) {
-        var name = bookmarkNames[i].textContent.toUpperCase();
-        if (name.includes(filterValue)) {
-            bookmarkNames[i].parentElement.style.display = "block";
-        } else {
-            bookmarkNames[i].parentElement.style.display = "none";
-        }
-    }
-}
+// Find the form and add an event listener to it
+document.querySelector("form").addEventListener("submit", saveBookmark);
 
 // Save Bookmarks
-function savaBookmark(e) {
-    e.preventDefault();
-    // console.log("Hello from saveBookmark");
+function saveBookmark(e) {
+  // Prevent from page reloading
+  e.preventDefault();
 
-    // Get User input
-    var siteName = document.querySelector("#siteName").value;
-    // console.log(siteName);
-    var siteUrl = document.getElementById("siteUrl").value;
-    // console.log(siteUrl);
+  // Get site name and site url
+  var siteName = document.querySelector("#siteName").value;
+  var siteUrl = document.querySelector("#siteUrl").value;
+  
+  // Create a bookmark object
+  var bookmark = {
+    name: siteName,
+    url: siteUrl
+  }
 
-    // Create an object for bookmark
-    var bookmark = {
-        name: siteName,
-        url: siteUrl
-    };
-
-    // Check if name or url is empty
-    if (siteName === "" || siteUrl === "") {
-        alert("Site name and url cannot be empty");
-        return false;
-    }
-
-    // console.log(bookmark);
-
-    // localStorage.setItem("test", "Hello World");
-    // console.log(localStorage.getItem("test"));
-
-    // store bookmarks array into local storage
-
-    // Check if the bookmarks array exists
-    if (localStorage.getItem("bookmarks") === null) {
-        // Init bookmarks array
-        var bookmarks = [];
-        // Adding new bookmark into array
-        bookmarks.push(bookmark);
-        // Set to localStorage
-        localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
-    } else {
-        // Get bookmarks from local storage
-        var bookmarks = JSON.parse(localStorage.getItem("bookmarks"));
-        // Add new bookmark into bookmarks
-        bookmarks.push(bookmark);
-        //reset bookmarks to localStorage
-        localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
-    }
-    // Rest the form
-    document.querySelector("#myForm").reset();
-
-    fetchBookmarks();
-}
-// fetch Bookmakrs
-function fetchBookmarks() {
-    // Get bookmarks from localStorage
+  // Check if the local storage is empty
+  if(localStorage.getItem("bookmarks") === null) {
+    // Init bookmarks array
+    var bookmarks = [];
+    // Adding first bookmark
+    bookmarks.push(bookmark);
+    // Set bookmarks to localstorage
+    localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+  } else {
+    // Get current bookmarks from local storage
     var bookmarks = JSON.parse(localStorage.getItem("bookmarks"));
+    // Push new bookmark into bookmarks
+    bookmarks.push(bookmark);
+    // set bookmarks to localstorage
+    localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+  }
 
-    // Get the output div by id
-    var bookmarksResult = document.querySelector("#bookmarksResult");
+  // Reset the form
+  document.querySelector("form").reset();
 
-    // console.log(bookmarksResult);
+  // Fetch bookmarks
+  fetchBookmarks();
+}
 
-    // Reset the output div
-    bookmarksResult.innerHTML = "";
+// Fetch bookmarks
+function fetchBookmarks() {
+  // Get bookmarks from local storage
+  var bookmarks = JSON.parse(localStorage.getItem("bookmarks"));
 
-    // Loop through bookmarks
-    for (var i = 0; i < bookmarks.length; i++) {
-        var name = bookmarks[i].name;
-        var url = bookmarks[i].url;
+  // Select the bookmarks div
+  var output = document.querySelector("#bookmarks");
 
-        // Create div
-        var div = document.createElement("div");
-        // Create h3
-        var h3 = document.createElement("h3");
-        h3.textContent = name;
-        h3.className = "name";
-        // Create link
-        var a = document.createElement("a");
-        a.href = url;
-        a.className = "btn btn-success";
-        a.textContent = "Visit";
+  // Reset the bookmarks div
+  output.innerHTML = "";
 
-        // Create Button
-        var button = document.createElement("button");
-        button.className = "btn btn-danger";
-        button.textContent = "Delete";
-        button.addEventListener("click", function(e) {
-            var siteName = e.target.parentElement.children[0].textContent;
-            deleteBookmark(siteName);
-        });
-        div.appendChild(h3);
-        div.appendChild(a);
-        div.appendChild(button);
-        bookmarksResult.append(div);
-    }
+  // Loop over bookmarks
+  for(var i=0;i<bookmarks.length;i++) {
+    // Create div
+    var div = document.createElement("div");
+    // Create h3
+    var h3 = document.createElement("h3");
+    h3.textContent = bookmarks[i].name;
+
+    // Create visit link
+    var a = document.createElement("a");
+    a.href = bookmarks[i].url;
+    a.className = "btn btn-success";
+    a.textContent = "Visit"
+
+    // Create delete button
+    var button = document.createElement("button");
+    button.className = "btn btn-danger";
+    button.textContent = "Delete";
+    
+    button.addEventListener("click", function(e){
+        var name = e.target.parentElement.children[0].textContent;
+        deleteBookmark(name);
+    })
+
+
+    // append h3, a and button into div
+    div.appendChild(h3);
+    div.appendChild(a);
+    div.appendChild(button);
+
+    // append div into output;
+    output.appendChild(div);
+  }
 }
 
 function deleteBookmark(name) {
-    // console.log(name);
-
-    // Get bookmarks from localStorage
+    // Get bookmarks from localStorage;
     var bookmarks = JSON.parse(localStorage.getItem("bookmarks"));
 
-    //loop thourgh bookmarks
-    for (var i = 0; i < bookmarks.length; i++) {
-        //remove the bookmark with the given name
-        if (bookmarks[i].name === name) {
-            bookmarks.splice(i, 1);
-            break;
-        }
+    // Loop over bookmarks
+    for(var i=0; i<bookmarks.length;i++) {
+      // looking for bookmark by given name
+      if(bookmarks[i].name === name) {
+        bookmarks.splice(i, 1);
+        break;
+      }
     }
 
-    // Reset bookmarks back to localStorage
+    // Reset bookmarks into localStorage
     localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
 
-    // Re-fetch bookmarks Result
+    // Re-fetch bookmarks output
     fetchBookmarks();
 }
